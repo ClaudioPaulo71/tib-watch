@@ -1,0 +1,37 @@
+{% if in_list %}
+<div style="display: flex; align-items: center; gap: 15px;">
+    <button class="btn btn-primary" style="background-color: #2ecc71; cursor: default;">
+        <i class="fas fa-check"></i> {{ user_status|replace('_', ' ')|title }}
+    </button>
+
+    <!-- Change Status / Review -->
+    <button class="btn" style="background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);"
+        hx-get="/tracker/review/{{ media_type or media.media_type }}/{{ media.id }}" hx-target="#modal-container"
+        hx-swap="innerHTML">
+        <i class="fas fa-edit"></i> Edit
+    </button>
+</div>
+{% else %}
+<form hx-post="/tracker/add" hx-target="#action-buttons-area" hx-swap="innerHTML">
+    <input type="hidden" name="media_type" value="{{ media.media_type or ('movie' if media.title else 'tv') }}">
+    <input type="hidden" name="tmdb_id" value="{{ media.id }}">
+    <input type="hidden" name="title" value="{{ media.title or media.name }}">
+    <input type="hidden" name="poster_path" value="{{ media.poster_path }}">
+    <input type="hidden" name="genres" value="{{ media.genres|map(attribute='name')|join(',') }}">
+    <input type="hidden" name="runtime" value="{{ media.runtime or 0 }}">
+    <input type="hidden" name="number_of_episodes" value="{{ media.number_of_episodes or 0 }}">
+
+    <button type="submit" name="status" value="watching" class="btn btn-primary" title="Start Watching">
+        <i class="fas fa-play"></i> Watch
+    </button>
+    <button type="submit" name="status" value="wishlist" class="btn" style="background-color: rgba(255,255,255,0.1);"
+        title="Add to Wishlist">
+        <i class="fas fa-bookmark"></i> Wishlist
+    </button>
+    <button type="submit" name="status" value="awaiting_episodes" class="btn"
+        style="background-color: rgba(255,255,255,0.1);" title="Plan to Watch">
+        <i class="fas fa-clock"></i> Plan
+    </button>
+    </div>
+</form>
+{% endif %}

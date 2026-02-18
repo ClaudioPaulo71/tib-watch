@@ -1,0 +1,362 @@
+{% extends "layouts/base.html" %}
+
+{% block head_css %}
+<style>
+    .media-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 20px;
+    }
+
+    .media-card img {
+        width: 100%;
+        border-radius: 8px;
+        transition: transform 0.2s;
+    }
+
+    .media-card:hover img {
+        transform: scale(1.05);
+    }
+
+    .media-info {
+        margin-top: 8px;
+    }
+
+    .media-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: white;
+    }
+
+    .badge {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+
+    .badge-watching {
+        background: #3498db;
+        color: white;
+    }
+
+    .badge-watched {
+        background: #2ecc71;
+        color: white;
+    }
+
+    .badge-finished {
+        background: #2ecc71;
+        color: white;
+    }
+
+    .badge-plan_to_watch {
+        background: #95a5a6;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block title %}Dashboard - TIB Watch{% endblock %}
+
+{% block content %}
+<div style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+
+    <header style="margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 5px;">{{ page_title }}</h1>
+            <p style="color: #888;">Monitor your consumption habits.</p>
+        </div>
+        <a href="/tracker/search" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New
+        </a>
+    </header>
+
+    <!-- KPI Cards -->
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
+
+        <!-- Total Titles -->
+        <div class="card"
+            style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <div
+                style="font-size: 0.9rem; color: #888; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-list"></i> Total Titles
+            </div>
+            <div style="font-size: 2.5rem; font-weight: 700; color: white;">
+                {{ stats.total_titles }}
+            </div>
+        </div>
+
+        <!-- Movies Watched -->
+        {% if not stats.filter or stats.filter == 'movie' %}
+        <div class="card"
+            style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <div
+                style="font-size: 0.9rem; color: #888; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-film"></i> Movies Watched
+            </div>
+            <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-color);">
+                {{ stats.movies_watched }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Series Finished -->
+        {% if not stats.filter or stats.filter == 'tv' %}
+        <div class="card"
+            style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <div
+                style="font-size: 0.9rem; color: #888; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-tv"></i> TV Completed
+            </div>
+            <div style="font-size: 2.5rem; font-weight: 700; color: #9b59b6;">
+                {{ stats.series_finished }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Total Time -->
+        <div class="card"
+            style="padding: 20px; background: linear-gradient(135deg, rgba(231, 76, 60, 0.2), rgba(0,0,0,0)); border-radius: 12px; border: 1px solid rgba(231, 76, 60, 0.3);">
+            <div
+                style="font-size: 0.9rem; color: #e74c3c; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-clock"></i> Time Wasted (Approx)
+            </div>
+            <div style="font-size: 2.5rem; font-weight: 700; color: white;">
+                {{ stats.total_hours }}<span style="font-size: 1rem; font-weight: 400; color: #ccc;">hrs</span>
+            </div>
+            <div style="font-size: 0.9rem; color: #888; margin-top: 5px;">
+                ~ {{ stats.total_days }} days of your life
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Charts Section -->
+
+
+    <!-- Recent Activity Section with Tabs/Columns -->
+    <!-- Recent Activity Section - Vertical Lists -->
+    <div style="display: flex; flex-direction: column; gap: 60px;">
+
+        <!-- Movies Section -->
+        {% if not stats.filter or stats.filter == 'movie' %}
+        <div id="movies-section">
+            <h2
+                style="margin-bottom: 30px; font-size: 2rem; border-bottom: 2px solid var(--accent-color); padding-bottom: 15px; display: inline-block;">
+                <i class="fas fa-film"></i> Movies
+            </h2>
+
+            {% if stats.movies_by_status %}
+            {% for status, items in stats.movies_by_status.items() %}
+            <div style="margin-bottom: 40px;">
+                <h3
+                    style="font-size: 1.2rem; color: #aaa; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 1px; border-left: 4px solid var(--accent-color); padding-left: 15px;">
+                    {{ status|replace('_', ' ') }}
+                    <span
+                        style="font-size: 0.9rem; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; margin-left: 10px; color: white;">
+                        {{ items|length }}
+                    </span>
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    {% for item in items %}
+                    <a href="/tracker/details/movie/{{ item.media.tmdb_id }}"
+                        style="text-decoration: none; color: inherit;">
+                        <div class="media-list-item"
+                            style="display: flex; gap: 20px; background: rgba(255,255,255,0.03); border-radius: 8px; overflow: hidden; padding: 15px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;">
+
+                            <!-- Poster -->
+                            <div
+                                style="width: 80px; height: 120px; flex-shrink: 0; border-radius: 4px; overflow: hidden;">
+                                {% if item.media.poster_path %}
+                                <img src="https://image.tmdb.org/t/p/w200{{ item.media.poster_path }}"
+                                    alt="{{ item.media.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                <div
+                                    style="width: 100%; height: 100%; background: #333; display: flex; align-items: center; justify-content: center; color: #666; font-size: 0.8rem;">
+                                    No Image</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Info -->
+                            <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+                                <h4 style="margin: 0 0 8px 0; font-size: 1.2rem; font-weight: 600; color: white;">{{
+                                    item.media.title }}</h4>
+
+                                <div
+                                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.85rem; color: #aaa; margin-bottom: 5px;">
+                                    {% if item.media.origin_country %}
+                                    <span><i class="fas fa-globe"></i> {{ item.media.origin_country }}</span>
+                                    {% endif %}
+                                    {% if item.media.runtime and item.media.runtime > 0 %}
+                                    <span><i class="fas fa-clock"></i> {{ item.media.runtime }} min</span>
+                                    {% endif %}
+                                    {% if item.media.genres %}
+                                    <span><i class="fas fa-tags"></i> {{ item.media.genres|replace(',', ', ') }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if item.media.cast %}
+                                <div
+                                    style="font-size: 0.8rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px;">
+                                    <i class="fas fa-users"></i> {{ item.media.cast|replace(',', ', ') }}
+                                </div>
+                                {% endif %}
+
+                                {% if item.user_media.rating %}
+                                <div
+                                    style="margin-top: 10px; display: flex; align-items: center; gap: 5px; color: #f1c40f;">
+                                    <i class="fas fa-star"></i> {{ item.user_media.rating }} <span
+                                        style="color: #666; font-size: 0.8rem;">(Your Rating)</span>
+                                </div>
+                                {% endif %}
+
+                                <div style="margin-top: 10px; font-size: 0.85rem; color: #666;">
+                                    Last updated: {{ item.user_media.updated_at.strftime('%Y-%m-%d') if
+                                    item.user_media.updated_at else 'N/A' }}
+                                </div>
+                            </div>
+
+                            <!-- Action/Status Badge -->
+                            <div style="display: flex; align-items: center; padding-right: 15px;">
+                                <span class="badge badge-{{ item.user_media.status }}"
+                                    style="font-size: 0.85rem; padding: 6px 12px;">
+                                    {{ item.user_media.status|replace('_', ' ') }}
+                                </span>
+                            </div>
+
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p
+                style="color: #666; font-style: italic; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                No movies tracked yet.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- TV Shows Section -->
+        {% if not stats.filter or stats.filter == 'tv' %}
+        <div id="tv-section">
+            <h2
+                style="margin-bottom: 30px; font-size: 2rem; border-bottom: 2px solid #9b59b6; padding-bottom: 15px; display: inline-block;">
+                <i class="fas fa-tv"></i> TV Shows
+            </h2>
+
+            {% if stats.tv_by_status %}
+            {% for status, items in stats.tv_by_status.items() %}
+            <div style="margin-bottom: 40px;">
+                <h3
+                    style="font-size: 1.2rem; color: #aaa; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 1px; border-left: 4px solid #9b59b6; padding-left: 15px;">
+                    {{ status|replace('_', ' ') }}
+                    <span
+                        style="font-size: 0.9rem; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; margin-left: 10px; color: white;">
+                        {{ items|length }}
+                    </span>
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    {% for item in items %}
+                    <a href="/tracker/details/tv/{{ item.media.tmdb_id }}"
+                        style="text-decoration: none; color: inherit;">
+                        <div class="media-list-item"
+                            style="display: flex; gap: 20px; background: rgba(255,255,255,0.03); border-radius: 8px; overflow: hidden; padding: 15px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;">
+
+                            <!-- Poster -->
+                            <div
+                                style="width: 80px; height: 120px; flex-shrink: 0; border-radius: 4px; overflow: hidden;">
+                                {% if item.media.poster_path %}
+                                <img src="https://image.tmdb.org/t/p/w200{{ item.media.poster_path }}"
+                                    alt="{{ item.media.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                <div
+                                    style="width: 100%; height: 100%; background: #333; display: flex; align-items: center; justify-content: center; color: #666; font-size: 0.8rem;">
+                                    No Image</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Info -->
+                            <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+                                <h4 style="margin: 0 0 8px 0; font-size: 1.2rem; font-weight: 600; color: white;">{{
+                                    item.media.title }}</h4>
+
+                                <div
+                                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.85rem; color: #aaa; margin-bottom: 5px;">
+                                    {% if item.media.origin_country %}
+                                    <span><i class="fas fa-globe"></i> {{ item.media.origin_country }}</span>
+                                    {% endif %}
+                                    {% if item.media.number_of_seasons %}
+                                    <span><i class="fas fa-layer-group"></i> {{ item.media.number_of_seasons }}
+                                        Seasons</span>
+                                    {% elif item.media.number_of_episodes %}
+                                    <span><i class="fas fa-list-ol"></i> {{ item.media.number_of_episodes }} eps</span>
+                                    {% endif %}
+                                    {% if item.media.genres %}
+                                    <span><i class="fas fa-tags"></i> {{ item.media.genres|replace(',', ', ') }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if item.media.cast %}
+                                <div
+                                    style="font-size: 0.8rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px;">
+                                    <i class="fas fa-users"></i> {{ item.media.cast|replace(',', ', ') }}
+                                </div>
+                                {% endif %}
+
+                                {% if item.user_media.rating %}
+                                <div
+                                    style="margin-top: 10px; display: flex; align-items: center; gap: 5px; color: #f1c40f;">
+                                    <i class="fas fa-star"></i> {{ item.user_media.rating }} <span
+                                        style="color: #666; font-size: 0.8rem;">(Your Rating)</span>
+                                </div>
+                                {% endif %}
+
+                                <div style="margin-top: 10px; font-size: 0.85rem; color: #666;">
+                                    Last updated: {{ item.user_media.updated_at.strftime('%Y-%m-%d') if
+                                    item.user_media.updated_at else 'N/A' }}
+                                </div>
+                            </div>
+
+                            <!-- Action/Status Badge -->
+                            <div style="display: flex; align-items: center; padding-right: 15px;">
+                                <span class="badge badge-{{ item.user_media.status }}"
+                                    style="font-size: 0.85rem; padding: 6px 12px;">
+                                    {{ item.user_media.status|replace('_', ' ') }}
+                                </span>
+                            </div>
+
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p
+                style="color: #666; font-style: italic; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                No TV shows tracked yet.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+
+    <style>
+        .media-list-item:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+
+
+
+</div>
+{% endblock %}

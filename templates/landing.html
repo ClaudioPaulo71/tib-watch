@@ -1,0 +1,181 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}TIB-Watch - Master Your Marathon{% endblock %}
+
+{% block head_css %}
+<link rel="stylesheet" href="/static/css/landing.css">
+{% endblock %}
+
+{% block navbar_search %}{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <span class="hero-badge">New: TMDB Integration</span>
+        <h1 class="hero-title">Master Your Marathon:<br><span>The Definitive Diary</span></h1>
+        <p class="hero-subtitle">
+            Track what you watched, discover new works, and never forget an episode again.
+            Integrated with the world's largest movie database.
+        </p>
+
+        <div class="hero-buttons">
+            {% if request.session.get('user_id') %}
+            <a href="/tracker/" class="btn btn-primary btn-lg">Go to Dashboard</a>
+            {% else %}
+            <a href="/auth/register" class="btn btn-primary btn-lg">Start for Free</a>
+            <!-- <a href="#plans" class="btn btn-lg btn-outline">View Plans</a> -->
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="hero-image-container">
+        <div class="app-preview">
+            <!-- Placeholder for App Screenshot -->
+            <div
+                style="width: 100%; height: 100%; background: linear-gradient(to bottom, #151923, #0B0E17); display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                <i class="fas fa-play-circle"
+                    style="font-size: 5rem; color: var(--accent-color); margin-bottom: 20px; text-shadow: 0 0 30px var(--accent-glow);"></i>
+                <h3 style="color: var(--text-muted);">Dashboard Preview</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="section-header">
+        <h2 class="section-title">Everything You Need</h2>
+        <div
+            style="width: 50px; height: 4px; background-color: var(--accent-color); margin: 0 auto; border-radius: 2px;">
+        </div>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-sync-alt"></i>
+            </div>
+            <h3 class="feature-title">TMDB Synchronization</h3>
+            <p class="feature-desc">Instant access to millions of movies and series with always-updated data and
+                high-definition images.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <h3 class="feature-title">Real Statistics</h3>
+            <p class="feature-desc">Discover how much time you've spent watching, your favorite genres, and most
+                followed directors.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-list-ul"></i>
+            </div>
+            <h3 class="feature-title">Smart Watchlists</h3>
+            <p class="feature-desc">Organize what you want to watch by tags, mood, or streaming services. Never waste
+                time choosing again.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section commented out per user request -->
+<!--
+<section class="pricing-section" id="plans">
+    <div class="section-header">
+        <h2 class="section-title">Plans that fit your pocket</h2>
+        <p style="color: var(--text-secondary);">Choose the ideal plan for your cinephile journey.</p>
+    </div>
+
+    <div class="pricing-cards">
+        <div class="pricing-card">
+            <h3 class="plan-name">Enthusiast</h3>
+            <div class="plan-price">$ 0 <span>/mo</span></div>
+            <ul class="plan-features">
+                <li><i class="fas fa-check-circle"></i> Unlimited logs</li>
+                <li><i class="fas fa-check-circle"></i> Up to 3 Watchlists</li>
+                <li><i class="fas fa-check-circle"></i> Basic Statistics</li>
+            </ul>
+            <a href="/auth/register" class="btn btn-outline" style="width: 100%; justify-content: center;">Start Free</a>
+        </div>
+
+        <div class="pricing-card featured">
+            <div
+                style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background-color: var(--accent-color); padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; color: white;">
+                MOST POPULAR</div>
+            <h3 class="plan-name">CineLog+</h3>
+            <div class="plan-price">$ 4.90 <span>/mo</span></div>
+            <ul class="plan-features">
+                <li><i class="fas fa-check-circle"></i> Everything in Enthusiast</li>
+                <li><i class="fas fa-check-circle"></i> Detailed Statistics</li>
+                <li><i class="fas fa-check-circle"></i> Unlimited Watchlists</li>
+                <li><i class="fas fa-check-circle"></i> Advanced Filters</li>
+                <li><i class="fas fa-check-circle"></i> Ad-free</li>
+            </ul>
+            <a href="/auth/register?plan=pro" class="btn btn-primary"
+                style="width: 100%; justify-content: center;">Subscribe Now</a>
+        </div>
+
+        <div class="pricing-card">
+            <h3 class="plan-name">Annual</h3>
+            <div class="plan-price">$ 49.90 <span>/yr</span></div>
+            <p
+                style="color: var(--success-color); font-size: 0.85rem; font-weight: 600; margin-top: -10px; margin-bottom: 20px;">
+                SAVE $8.90</p>
+            <ul class="plan-features">
+                <li><i class="fas fa-check-circle"></i> Everything in CineLog+</li>
+                <li><i class="fas fa-check-circle"></i> Priority Support</li>
+                <li><i class="fas fa-check-circle"></i> Founder Badge</li>
+            </ul>
+            <a href="/auth/register?plan=annual" class="btn btn-outline"
+                style="width: 100%; justify-content: center;">Subscribe Annual</a>
+        </div>
+    </div>
+</section>
+-->
+
+<!-- Footer -->
+<footer class="landing-footer">
+    <div class="footer-content">
+        <div class="footer-col" style="flex: 2; min-width: 250px;">
+            <div class="brand-logo" style="margin-bottom: 20px; display: inline-block;">TIB-Watch</div>
+            <p style="color: var(--text-secondary); line-height: 1.6; max-width: 300px;">
+                Your definitive companion to log every frame of your life. Explore, rate, and share your passion for
+                audiovisuals.
+            </p>
+        </div>
+
+        <div class="footer-col">
+            <h4>Platform</h4>
+            <ul class="footer-links">
+                <li><a href="#">Download App</a></li>
+                <li><a href="#">Features</a></li>
+                <li><a href="#">Integrations</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col">
+            <h4>Support</h4>
+            <ul class="footer-links">
+                <li><a href="#">FAQ</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#">System Status</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col">
+            <h4>Legal</h4>
+            <ul class="footer-links">
+                <li><a href="#">Privacy</a></li>
+                <li><a href="#">Terms of Use</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="copyright">
+        &copy; 2024 TIB-Watch. All rights reserved. POWERED BY TMDB & TRAKT
+    </div>
+</footer>
+{% endblock %}

@@ -1,0 +1,31 @@
+<div style="animation: fadeIn 0.3s ease-out;">
+    <h3
+        style="margin-bottom: 20px; font-size: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+        {{ season.name }}
+        <span style="font-size: 1rem; color: #aaa; font-weight: normal; margin-left: 10px;">
+            ({{ season.air_date[:4] if season.air_date else 'N/A' }})
+        </span>
+    </h3>
+
+    {% if episodes %}
+    {% for episode in episodes %}
+    {% include "tracker/partials_season_episodes_card.html" %}
+    {% endfor %}
+    {% else %}
+    <p style="color: #aaa; font-style: italic;">No episodes found for this season.</p>
+    {% endif %}
+</div>
+
+<style>
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>

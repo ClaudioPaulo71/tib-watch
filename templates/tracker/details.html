@@ -1,0 +1,326 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ media.title or media.name }} - TIB Watch{% endblock %}
+
+{% block content %}
+<div style="position: relative; margin-top: -40px; margin-left: -24px; margin-right: -24px;">
+    <!-- Hero Backdrop -->
+    {% if media.backdrop_path %}
+    <div style="
+        height: 80vh; 
+        width: 100%; 
+        background-image: linear-gradient(to top, #121212 10%, transparent 90%), 
+                          linear-gradient(to right, #121212 0%, rgba(18,18,18,0.4) 50%, transparent 100%),
+                          url('https://image.tmdb.org/t/p/original{{ media.backdrop_path }}');
+        background-size: cover;
+        background-position: center top;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+    "></div>
+    {% else %}
+    <div
+        style="height: 60vh; width: 100%; background: linear-gradient(45deg, #1a1a1a, #000); position: absolute; z-index: 0;">
+    </div>
+    {% endif %}
+
+    <!-- Content Overlay -->
+    <div
+        style="position: relative; z-index: 10; padding: 20px; padding-top: 20vh; display: flex; flex-direction: column; max-width: 1200px; margin: 0 auto;">
+
+        <div style="display: flex; gap: 40px; flex-wrap: wrap;">
+            <!-- Poster -->
+            <div style="flex-shrink: 0;">
+                <img src="https://image.tmdb.org/t/p/w500{{ media.poster_path }}" alt="Poster"
+                    style="width: 300px; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1);">
+            </div>
+
+            <!-- Info -->
+            <div
+                style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 20px;">
+
+                <button onclick="history.back()" class="btn btn-primary"
+                    style="width: fit-content; margin-bottom: 20px; padding: 8px 16px; border-radius: 20px;">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+
+                <h1
+                    style="font-size: 4rem; font-weight: 800; line-height: 1.1; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.8);">
+                    {{ media.title or media.name }}
+                </h1>
+
+                <div
+                    style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px; font-size: 1.1rem; color: #ccc;">
+                    <span>{{ (media.release_date or media.first_air_date or 'N/A')[:4] }}</span>
+                    <span>&bull;</span>
+                    <span>{{ media.vote_average|round(1) }} <i class="fas fa-star" style="color: gold;"></i></span>
+                    <span>&bull;</span>
+                    <span>{{ media.genres|map(attribute='name')|join(', ') }}</span>
+                    {% if series_stats and series_stats.total_minutes > 0 %}
+                    <span>&bull;</span>
+                    <span style="color: var(--primary-color); font-weight: bold;">
+                        <i class="fas fa-clock"></i> Watched: {{ series_stats.time_str }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <p
+                    style="font-size: 1.2rem; line-height: 1.6; max-width: 800px; margin-bottom: 30px; text-shadow: 0 2px 5px rgba(0,0,0,0.8);">
+                    {{ media.overview or 'Overview not available.' }}
+                </p>
+
+                <!-- Action Buttons Area -->
+                <div id="action-buttons-area" style="margin-bottom: 30px;">
+                    {% include "tracker/partials_action_buttons.html" %}
+                </div>
+
+                <!-- Seasons Section (Only for TV) -->
+                {% if media_type == 'tv' %}
+                <div style="margin-bottom: 40px; margin-top: 20px;">
+                    <h2 style="font-size: 2rem; margin-bottom: 20px;">Seasons</h2>
+
+                    <!-- Season Tabs -->
+                    <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px;">
+                        {% for season in media.seasons %}
+                        {% if season.season_number > 0 or media.seasons|length == 1 %}
+                        <!-- Skip specials usually, or handle better -->
+                        <button hx-get="/tracker/partials/season/{{ media.id }}/{{ season.season_number }}"
+                            hx-target="#season-episodes-container" hx-swap="innerHTML"
+                            onclick="document.querySelectorAll('.season-tab').forEach(b => b.style.background='rgba(255,255,255,0.1)'); this.style.background='var(--primary-color)';"
+                            class="season-tab"
+                            style="padding: 10px 20px; background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 20px; cursor: pointer; white-space: nowrap; transition: background 0.2s;">
+                            {{ season.name }}
+                        </button>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Season Episodes Container -->
+                    <div id="season-episodes-container" style="min-height: 200px;">
+                        <p style="color: #aaa;">Select a season to view episodes.</p>
+                    </div>
+
+                    <!-- Auto-load first season if available -->
+                    {% if media.seasons and media.seasons|length > 0 %}
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            // Find first season button and click it, or trigger htmx
+                            const firstBtn = document.querySelector('.season-tab');
+                            if (firstBtn) {
+                                firstBtn.click();
+                            }
+                        });
+                    </script>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+
+
+            </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px; margin-top: 40px;">
+
+            <!-- Left Column: Cast & Reviews -->
+            <div>
+                <!-- Top Cast -->
+                {% if media.credits and media.credits.cast %}
+                <div style="margin-bottom: 40px;">
+                    <h2
+                        style="font-size: 1.5rem; margin-bottom: 20px; border-left: 4px solid var(--accent-color); padding-left: 15px;">
+                        Top Cast</h2>
+
+                    <div
+                        style="display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; scrollbar-width: thin;">
+                        {% for person in media.credits.cast[:10] %}
+                        <div style="width: 120px; flex-shrink: 0; text-align: center;">
+                            <div
+                                style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; margin-bottom: 10px; border: 2px solid rgba(255,255,255,0.1);">
+                                {% if person.profile_path %}
+                                <img src="https://image.tmdb.org/t/p/w200{{ person.profile_path }}"
+                                    alt="{{ person.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                <div
+                                    style="width: 100%; height: 100%; background: #333; display: flex; align-items: center; justify-content: center; color: #666;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 4px;">{{ person.name }}
+                            </div>
+                            <div style="color: #888; font-size: 0.8rem;">{{ person.character }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+
+
+                <!-- My Review Section -->
+                {% if in_list %}
+                <div
+                    style="margin-bottom: 40px; background: rgba(255,255,255,0.02); padding: 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h2
+                        style="font-size: 1.5rem; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+                        <span style="border-left: 4px solid #f1c40f; padding-left: 15px;">My Review</span>
+                        <a href="#" hx-get="/tracker/review/{{ media_type }}/{{ media.id }}"
+                            hx-target="#modal-container" hx-swap="innerHTML"
+                            style="font-size: 0.9rem; color: var(--accent-color); text-decoration: none;">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    </h2>
+
+                    {% if user_rating is not none %}
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <div
+                            style="background: #f1c40f; color: black; font-weight: 800; padding: 5px 10px; border-radius: 6px;">
+                            {{ "%.1f"|format(user_rating) }} <i class="fas fa-star" style="font-size: 0.8rem;"></i>
+                        </div>
+                        <span style="color: #aaa; font-size: 0.9rem;">Your Rating</span>
+                    </div>
+                    {% else %}
+                    <div style="margin-bottom: 15px; color: #666; font-style: italic;">No rating yet.</div>
+                    {% endif %}
+
+                    {% if user_comment %}
+                    <div
+                        style="font-size: 1rem; line-height: 1.6; color: #ddd; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border-left: 2px solid rgba(255,255,255,0.1);">
+                        <i class="fas fa-quote-left" style="color: #444; margin-right: 10px;"></i>
+                        {{ user_comment }}
+                    </div>
+                    {% else %}
+                    <div style="color: #666; font-style: italic;">No personal notes added.</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Seasons Section (Only for TV) -->
+                {% if media_type == 'tv' %}
+                <div style="margin-bottom: 40px; margin-top: 20px;">
+                    <h2 style="font-size: 2rem; margin-bottom: 20px;">Seasons</h2>
+
+                    <!-- Season Tabs -->
+                    <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px;">
+                        {% for season in media.seasons %}
+                        {% if season.season_number > 0 or media.seasons|length == 1 %}
+                        <!-- Skip specials usually, or handle better -->
+                        <button hx-get="/tracker/partials/season/{{ media.id }}/{{ season.season_number }}"
+                            hx-target="#season-episodes-container" hx-swap="innerHTML"
+                            onclick="document.querySelectorAll('.season-tab').forEach(b => b.style.background='rgba(255,255,255,0.1)'); this.style.background='var(--primary-color)';"
+                            class="season-tab"
+                            style="padding: 10px 20px; background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 20px; cursor: pointer; white-space: nowrap; transition: background 0.2s;">
+                            {{ season.name }}
+                        </button>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Season Episodes Container -->
+                    <div id="season-episodes-container" style="min-height: 200px;">
+                        <p style="color: #aaa;">Select a season to view episodes.</p>
+                    </div>
+
+                    <!-- Auto-load first season if available -->
+                    {% if media.seasons and media.seasons|length > 0 %}
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            // Find first season button and click it, or trigger htmx
+                            const firstBtn = document.querySelector('.season-tab');
+                            if (firstBtn) {
+                                firstBtn.click();
+                            }
+                        });
+                    </script>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- Right Column: Information -->
+            <div>
+                <div
+                    style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: sticky; top: 100px;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 20px; color: #fff; font-weight: 600;">Information</h3>
+
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+
+                        <div>
+                            <div style="font-size: 0.8rem; color: #888; font-weight: 600; text-transform: uppercase;">
+                                Original Title</div>
+                            <div style="color: #ddd;">{{ media.original_title or media.original_name }}</div>
+                        </div>
+
+                        <div>
+                            <div style="font-size: 0.8rem; color: #888; font-weight: 600; text-transform: uppercase;">
+                                Status</div>
+                            <div style="color: #ddd;">{{ media.status }}</div>
+                        </div>
+
+                        {% if media_type == 'tv' and media.networks %}
+                        <div>
+                            <div style="font-size: 0.8rem; color: #888; font-weight: 600; text-transform: uppercase;">
+                                Network</div>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
+                                {% for network in media.networks %}
+                                {% if network.logo_path %}
+                                <img src="https://image.tmdb.org/t/p/h30{{ network.logo_path }}"
+                                    alt="{{ network.name }}" style="height: 20px; filter: invert(1);">
+                                {% else %}
+                                <span>{{ network.name }}</span>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if media.budget and media.budget > 0 %}
+                        <div>
+                            <div style="font-size: 0.8rem; color: #888; font-weight: 600; text-transform: uppercase;">
+                                Budget</div>
+                            <div style="color: #ddd;">${{ "{:,.0f}".format(media.budget) }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if media.revenue and media.revenue > 0 %}
+                        <div>
+                            <div style="font-size: 0.8rem; color: #888; font-weight: 600; text-transform: uppercase;">
+                                Revenue</div>
+                            <div style="color: #ddd;">${{ "{:,.0f}".format(media.revenue) }}</div>
+                        </div>
+                        {% endif %}
+
+                        <div>
+                            <div style="font-size: 0.8rem; color: #888; font-weight: 600; text-transform: uppercase;">
+                                Keywords</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
+                                {% if media.keywords and media.keywords.keywords %}
+                                {% for keyword in media.keywords.keywords %}
+                                <span
+                                    style="font-size: 0.8rem; color: #ccc; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px;">{{
+                                    keyword.name }}</span>
+                                {% endfor %}
+                                {% elif media.keywords and media.keywords.results %}
+                                {% for keyword in media.keywords.results %}
+                                <span
+                                    style="font-size: 0.8rem; color: #ccc; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px;">{{
+                                    keyword.name }}</span>
+                                {% endfor %}
+                                {% else %}
+                                <span style="font-size: 0.8rem; color: #666;">No keywords</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    {% endblock %}

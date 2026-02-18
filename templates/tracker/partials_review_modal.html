@@ -1,0 +1,67 @@
+<div id="review-modal" class="modal-overlay" onclick="if(event.target === this) this.remove()">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Review <span style="color: var(--accent-color);">{{ media.title }}</span></h2>
+            <button class="close-btn" onclick="document.getElementById('review-modal').remove()">&times;</button>
+        </div>
+
+        <form hx-post="/tracker/review/{{ media_type }}/{{ media.id }}" hx-target="#action-buttons-area"
+            hx-on::after-request="if(event.detail.successful) document.getElementById('review-modal').remove()">
+
+            <!-- Status -->
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    {% if media_type == 'movie' %}
+                    <option value="wishlist" {% if user_media.status=='wishlist' %}selected{% endif %}>Wishlist</option>
+                    <option value="watching" {% if user_media.status=='watching' %}selected{% endif %}>Watching</option>
+                    <option value="awaiting_episodes" {% if user_media.status=='awaiting_episodes' %}selected{% endif
+                        %}>Plan to Watch</option>
+                    <option value="watched" {% if user_media.status=='watched' %}selected{% endif %}>Watched</option>
+                    <option value="abandoned" {% if user_media.status=='abandoned' %}selected{% endif %}>Dropped
+                    </option>
+                    {% else %}
+                    <option value="wishlist" {% if user_media.status=='wishlist' %}selected{% endif %}>Wishlist</option>
+                    <option value="watching" {% if user_media.status=='watching' %}selected{% endif %}>Watching</option>
+                    <option value="awaiting_episodes" {% if user_media.status=='awaiting_episodes' %}selected{% endif
+                        %}>Plan to Watch</option>
+                    <option value="finished" {% if user_media.status=='finished' %}selected{% endif %}>Finished</option>
+                    <option value="abandoned" {% if user_media.status=='abandoned' %}selected{% endif %}>Dropped
+                    </option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <!-- Rating -->
+            <div class="form-group">
+                <label class="form-label">Rating: <span id="rating-value"
+                        style="color: var(--accent-color); font-weight: bold;">{{ user_media.rating or 0
+                        }}</span>/10</label>
+                <input type="range" name="rating" min="0" max="10" step="0.5" value="{{ user_media.rating or 0 }}"
+                    class="range-slider" oninput="document.getElementById('rating-value').innerText = this.value">
+            </div>
+
+            <!-- Comment -->
+            <div class="form-group">
+                <label class="form-label">Comment</label>
+                <textarea name="comment" class="form-control"
+                    placeholder="What did you think?">{{ user_media.comment or '' }}</textarea>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                <button type="button" class="btn"
+                    style="background: rgba(255,59,48,0.2); color: #ff3b30; border: 1px solid rgba(255,59,48,0.3);"
+                    hx-delete="/tracker/media/{{ media_type }}/{{ media.id }}"
+                    hx-confirm="Are you sure you want to remove this from your list?" hx-target="body">
+                    <i class="fas fa-trash-alt"></i> Remove
+                </button>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn" style="background: rgba(255,255,255,0.1);"
+                        onclick="document.getElementById('review-modal').remove()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Review</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

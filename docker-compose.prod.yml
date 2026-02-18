@@ -1,0 +1,14 @@
+services:
+  web:
+    # Use restart: always to ensure uptime
+    restart: always
+    # Remove volume mounts for code to use the image's copy (except data/static if needed, 
+    # but usually static is collected. Here we'll keep data persisted).
+    volumes:
+      - ./data:/app/data
+      # In prod, we might serv static files via nginx/traefik, but for now app serving is fine if efficient.
+      # We remove the code mounts to avoid dev changes affecting prod immediately and to test the build.
+
+      # Production command: remove reload, add workers
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
+    # Environment variables can be overridden here if needed, but .env is usually fine.

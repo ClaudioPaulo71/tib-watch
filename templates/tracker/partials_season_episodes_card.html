@@ -1,0 +1,125 @@
+<div class="episode-card" id="episode-card-{{ season_number }}-{{ episode.tmdb.episode_number }}"
+    style="display: flex; gap: 20px; background: rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden; margin-bottom: 20px; padding: 15px; border: 1px solid rgba(255,255,255,0.05);">
+
+    <!-- Still Image -->
+    <div style="width: 200px; height: 112px; flex-shrink: 0; position: relative; border-radius: 6px; overflow: hidden;">
+        {% if episode.tmdb.still_path %}
+        <img src="https://image.tmdb.org/t/p/w300{{ episode.tmdb.still_path }}" alt="Episode Still"
+            style="width: 100%; height: 100%; object-fit: cover;">
+        {% else %}
+        <div
+            style="width: 100%; height: 100%; background: #333; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-image fa-2x" style="color: #666;"></i>
+        </div>
+        {% endif %}
+
+        <div
+            style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
+            Ep {{ episode.tmdb.episode_number }}
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div style="flex-grow: 1; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600;">{{ episode.tmdb.name }}</h3>
+                <div style="font-size: 0.85rem; color: #aaa; margin-top: 4px;">
+                    {{ episode.tmdb.air_date or 'TBA' }} &bull; {{ episode.tmdb.runtime or '?' }} min
+                </div>
+            </div>
+
+            <!-- Global Vote -->
+            <div style="display: flex; align-items: center; gap: 5px; color: #f5c518; font-size: 0.9rem;">
+                <i class="fas fa-star"></i>
+                <span>{{ episode.tmdb.vote_average|round(1) }}</span>
+            </div>
+        </div>
+
+        <p
+            style="font-size: 0.9rem; color: #ccc; line-height: 1.4; flex-grow: 1; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ episode.tmdb.overview or 'Sinopse não disponível.' }}
+        </p>
+
+        <!-- User Controls -->
+        <div
+            style="display: flex; gap: 15px; align-items: center; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);">
+
+            <!-- Status Dropdown -->
+            <form hx-post="/tracker/api/episode/{{ tmdb_id }}/{{ season_number }}/{{ episode.tmdb.episode_number }}"
+                hx-target="#episode-card-{{ season_number }}-{{ episode.tmdb.episode_number }}" hx-trigger="change"
+                hx-swap="outerHTML">
+
+                <select name="action"
+                    style="background: {{ 'var(--primary-color)' if episode.user_activity.status == 'watched' else '#222' }}; 
+                               color: white; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">
+                    <option value="unwatch" style="background: #222; color: white;" {% if not
+                        episode.user_activity.status %}selected{% endif %}>Unwatched
+                    </option>
+                    <option value="watched" style="background: #222; color: white;" {% if
+                        episode.user_activity.status=='watched' %}selected{% endif %}>Watched
+                    </option>
+                    <option value="watching" style="background: #222; color: white;" {% if
+                        episode.user_activity.status=='watching' %}selected{% endif %}>
+                        Watching</option>
+                    <option value="skipped" style="background: #222; color: white;" {% if
+                        episode.user_activity.status=='skipped' %}selected{% endif %}>Skipped
+                    </option>
+                </select>
+            </form>
+
+            <!-- Rating -->
+            <div style="position: relative;">
+                <form hx-post="/tracker/api/episode/{{ tmdb_id }}/{{ season_number }}/{{ episode.tmdb.episode_number }}"
+                    hx-target="#episode-card-{{ season_number }}-{{ episode.tmdb.episode_number }}" hx-trigger="change"
+                    hx-swap="outerHTML">
+                    <input type="hidden" name="action" value="rate">
+                    <select name="rating"
+                        style="background: #222; color: {{ '#f5c518' if episode.user_activity.rating else 'white' }}; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 5px; font-size: 0.85rem; cursor: pointer;">
+                        <option value="" disabled style="background: #222; color: #aaa;" {% if not
+                            episode.user_activity.rating %}selected{% endif %}>Rate
+                        </option>
+                        {% for i in range(10, 0, -1) %}
+                        {% set selected = (episode.user_activity.rating|int == i) %}
+                        <option value="{{ i }}" style="background: #222; color: white;" {% if selected %}selected{%
+                            endif %}>{{ i }} ★</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+
+            <!-- Comment Trigger -->
+            <button
+                onclick="const box = document.getElementById('comment-box-{{ season_number }}-{{ episode.tmdb.episode_number }}'); box.style.display = box.style.display === 'none' ? 'block' : 'none';"
+                style="background: transparent; border: none; color: {{ '#fff' if episode.user_activity.comment else '#aaa' }}; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
+                <i class="fas fa-comment"></i>
+                {% if episode.user_activity.comment %}Edit Comment{% else %}Add Comment{% endif %}
+            </button>
+
+        </div>
+
+        <!-- Inline Comment Form (Hidden by default) -->
+        <div id="comment-box-{{ season_number }}-{{ episode.tmdb.episode_number }}"
+            style="display: none; margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <form hx-post="/tracker/api/episode/{{ tmdb_id }}/{{ season_number }}/{{ episode.tmdb.episode_number }}"
+                hx-target="#episode-card-{{ season_number }}-{{ episode.tmdb.episode_number }}" hx-swap="outerHTML">
+                <input type="hidden" name="action" value="comment">
+                <textarea name="comment" rows="3"
+                    style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 4px; resize: vertical; font-family: inherit; font-size: 0.9rem;"
+                    placeholder="Your thoughts on this episode...">{{ episode.user_activity.comment or '' }}</textarea>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+                    <button type="button"
+                        onclick="document.getElementById('comment-box-{{ season_number }}-{{ episode.tmdb.episode_number }}').style.display = 'none'"
+                        style="padding: 5px 12px; background: transparent; border: 1px solid #666; color: #ccc; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        style="padding: 5px 15px; background: var(--primary-color); border: none; color: white; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">
+                        Save Comment
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>

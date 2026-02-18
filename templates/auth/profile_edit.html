@@ -1,0 +1,66 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Edit Profile - TIB Watch{% endblock %}
+
+{% block navbar_search %}{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 40px auto; padding: 20px;">
+
+    <div class="card" style="padding: 40px; border-radius: 16px; background: #121212; border: 1px solid #333;">
+        <h2
+            style="margin-bottom: 30px; text-align: center; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; display: inline-block;">
+            Edit Member Data</h2>
+
+        <form action="/auth/profile" method="POST" enctype="multipart/form-data">
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: #ccc;">Full Name</label>
+                <input type="text" name="full_name" value="{{ user.full_name or user.name or '' }}" class="form-control"
+                    style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 8px;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: #ccc;">Phone</label>
+                <input type="text" name="phone" value="{{ user.phone or '' }}" placeholder="+1 555 0000"
+                    class="form-control"
+                    style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 8px;">
+            </div>
+
+            <div style="display: flex; gap: 20px;">
+                <div class="form-group" style="margin-bottom: 20px; flex: 1;">
+                    <label style="display: block; margin-bottom: 8px; color: #ccc;">City</label>
+                    <input type="text" name="city" value="{{ user.city or '' }}" class="form-control"
+                        style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 8px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 20px; flex: 1;">
+                    <label style="display: block; margin-bottom: 8px; color: #ccc;">State</label>
+                    <input type="text" name="state" value="{{ user.state or '' }}" class="form-control"
+                        style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 8px;">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: #ccc;">Country</label>
+                <input type="text" name="country" value="{{ user.country or '' }}" class="form-control"
+                    style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 8px;">
+            </div>
+
+            <!-- Profile Image -->
+            <div class="form-group" style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 8px; color: #ccc;">Update Photo</label>
+                <input type="file" name="profile_image" class="form-control"
+                    style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 8px;">
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="/auth/profile" style="color: #888; text-decoration: none;">Cancel</a>
+                <button type="submit" class="btn"
+                    style="background: var(--accent-color); color: white; padding: 12px 30px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

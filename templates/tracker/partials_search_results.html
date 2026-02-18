@@ -1,0 +1,37 @@
+{% if results %}
+<div class="grid-results">
+    {% for item in results %}
+    <div class="media-card" onclick="window.location.href='/tracker/details/{{ item.media_type }}/{{ item.id }}'">
+        <div class="media-poster-container">
+            {% if item.poster_path %}
+            <img src="https://image.tmdb.org/t/p/w500{{ item.poster_path }}" alt="{{ item.title or item.name }}"
+                loading="lazy" class="media-poster">
+            {% else %}
+            <div class="media-poster"
+                style="background-color: var(--bg-secondary); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-image" style="font-size: 2rem; color: var(--text-muted);"></i>
+            </div>
+            {% endif %}
+
+            {% if item.vote_average %}
+            <div class="rating-badge">
+                <i class="fas fa-star"></i> {{ "%.1f"|format(item.vote_average) }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="media-info">
+            <h3 class="media-title" title="{{ item.title or item.name }}">{{ item.title or item.name }}</h3>
+            <div class="media-meta">
+                <span>{{ (item.release_date or item.first_air_date or 'N/A')[:4] }}</span>
+                <span class="genre-tag">{{ item.media_type }}</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+    <p>No results found matching your query.</p>
+</div>
+{% endif %}

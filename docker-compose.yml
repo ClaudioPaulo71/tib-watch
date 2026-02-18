@@ -1,0 +1,32 @@
+services:
+  web:
+    build: .
+    container_name: tib_watch_app
+    restart: always
+    volumes:
+      - ./data:/app/data
+      - ./static:/app/static
+      - ./templates:/app/templates
+      - ./apps:/app/apps
+      - ./main.py:/app/main.py
+      - ./config.py:/app/config.py
+      - ./database.py:/app/database.py
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=sqlite:///data/tib_watch.db
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    networks:
+      - tib_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.watch.rule=Host(`watch.tib-usa.app`)"
+      - "traefik.http.routers.watch.entrypoints=websecure"
+      - "traefik.http.routers.watch.tls.certresolver=myresolver"
+      - "traefik.http.services.watch.loadbalancer.server.port=8000"
+
+networks:
+  tib_network:
+    external: true
