@@ -51,8 +51,11 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
                 <button type="button" class="btn"
                     style="background: rgba(255,59,48,0.2); color: #ff3b30; border: 1px solid rgba(255,59,48,0.3);"
-                    hx-delete="/tracker/media/{{ media_type }}/{{ media.id }}"
-                    hx-confirm="Are you sure you want to remove this from your list?" hx-target="body">
+                    onclick="if(confirm('Are you sure you want to remove this from your list?')) {
+                        fetch('/tracker/media/{{ media_type }}/{{ media.id }}', { method: 'DELETE' })
+                        .then(r => { if(r.ok) window.location.href = '/tracker/'; else alert('Failed to delete'); })
+                        .catch(e => alert('Error: ' + e));
+                    }">
                     <i class="fas fa-trash-alt"></i> Remove
                 </button>
 

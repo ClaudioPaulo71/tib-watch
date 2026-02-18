@@ -1,4 +1,9 @@
 /* Main Layout Structure */
+html {
+    overflow-y: scroll;
+    /* Force scrollbar to prevent layout shift */
+}
+
 body {
     background-color: var(--bg-primary);
     color: var(--text-primary);

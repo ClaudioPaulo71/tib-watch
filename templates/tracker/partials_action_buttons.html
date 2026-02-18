@@ -13,7 +13,8 @@
 </div>
 {% else %}
 <form hx-post="/tracker/add" hx-target="#action-buttons-area" hx-swap="innerHTML">
-    <input type="hidden" name="media_type" value="{{ media.media_type or ('movie' if media.title else 'tv') }}">
+    <input type="hidden" name="media_type"
+        value="{{ media_type or media.media_type or ('movie' if media.title else 'tv') }}">
     <input type="hidden" name="tmdb_id" value="{{ media.id }}">
     <input type="hidden" name="title" value="{{ media.title or media.name }}">
     <input type="hidden" name="poster_path" value="{{ media.poster_path }}">

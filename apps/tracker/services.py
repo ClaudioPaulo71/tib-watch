@@ -204,10 +204,14 @@ class TrackerService:
         ).first()
 
         if user_media:
-            # 3. Optional: Delete associated EpisodeActivity if any?
-            # For now, let's keep it simple and just delete UserMedia. 
-            # Cascade delete should handle activities if configured, otherwise we might leave orphans.
-            # Let's check models.py later. For now, manual cleanup might be safer if not cascaded.
+            # 3. Delete associated EpisodeActivity manually to avoid IntegrityError (if no cascade)
+            # Or use cascade delete in models.
+            # Let's manual cleanup for safety and immediate fix without migration.
+            activities = self.session.exec(
+                select(EpisodeActivity).where(EpisodeActivity.user_media_id == user_media.id)
+            ).all()
+            for activity in activities:
+                self.session.delete(activity)
             
             # Delete UserMedia
             self.session.delete(user_media)
@@ -366,6 +370,33 @@ class TrackerService:
                     print(f"[ERROR] Failed to sync episode S{season_number}E{ep_num}: {e}")
         
         print(f"[INFO] Completed episode sync for Series {tmdb_id}")
+
+    async def mark_season_watched(self, user_id: int, tmdb_id: int, season_number: int) -> None:
+        """
+        Marks all episodes of a specific season as watched.
+        """
+        print(f"[INFO] Marking season {season_number} of {tmdb_id} as watched")
+        
+        # 1. Fetch Season Details
+        try:
+            season_details = await self.tmdb.get_season_details(tmdb_id, season_number)
+        except Exception as e:
+            print(f"[ERROR] Failed to fetch season details: {e}")
+            return
+
+        episodes = season_details.get('episodes', [])
+        
+        # 2. Mark Episodes
+        for episode in episodes:
+            ep_num = episode.get('episode_number')
+            try:
+                await run_in_threadpool(
+                    self.update_episode_activity,
+                    user_id, tmdb_id, season_number, ep_num, 
+                    action='watched'
+                )
+            except Exception as e:
+                print(f"[ERROR] Failed to mark episode {ep_num}: {e}")
     def get_series_watch_stats(self, user_id: int, tmdb_id: int) -> Dict[str, Any]:
         """
         Calculates time watched for a specific series.

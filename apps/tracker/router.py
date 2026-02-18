@@ -119,18 +119,27 @@ async def media_details(
     # Fetch details even if user not logged in (will show generic view)
     # But for 'in_list' status, we need user_id
     
-    context_data = await service.get_details_context(user_id, media_type, tmdb_id)
-    
-    return templates.TemplateResponse("tracker/details.html", {
-        "request": request, 
-        "media": context_data['media'],
-        "media_type": media_type, # Explicitly pass media_type
-        "user_status": context_data['user_status'],
-        "user_rating": context_data.get('user_rating'), # Pass rating explicitly
-        "user_comment": context_data.get('user_comment'), # Ensure comment is passed too
-        "in_list": context_data['in_list'],
-        "series_stats": context_data.get('series_stats') # Ensure series stats are passed too just in case
-    })
+    try:
+        context_data = await service.get_details_context(user_id, media_type, tmdb_id)
+        
+        return templates.TemplateResponse("tracker/details.html", {
+            "request": request, 
+            "media": context_data['media'],
+            "media_type": media_type, # Explicitly pass media_type
+            "user_status": context_data['user_status'],
+            "user_rating": context_data.get('user_rating'), # Pass rating explicitly
+            "user_comment": context_data.get('user_comment'), # Ensure comment is passed too
+            "in_list": context_data['in_list'],
+            "series_stats": context_data.get('series_stats') # Ensure series stats are passed too just in case
+        })
+    except Exception as e:
+        print(f"Error loading details: {e}")
+        return templates.TemplateResponse("tracker/details_error.html", {
+            "request": request,
+            "error": str(e),
+            "media_type": media_type,
+            "tmdb_id": tmdb_id
+        })
 
 @router.post("/add")
 async def add_media(
@@ -151,6 +160,7 @@ async def add_media(
     try:
         tmdb_service = TMDBService()
         media_data = await tmdb_service.get_details(media_type, tmdb_id)
+        media_data['media_type'] = media_type # TMDB details response often lacks media_type, so we must inject it
         await tmdb_service.close()
     except Exception as e:
         print(f"Error fetching details in add_media: {e}")
@@ -361,3 +371,43 @@ async def update_episode_activity(
         "season_number": season_number,
         "episode": target_ep
     })
+
+@router.post("/api/season/{tmdb_id}/{season_number}/watch-all")
+async def mark_season_watched(
+    request: Request,
+    tmdb_id: int,
+    season_number: int,
+    background_tasks: BackgroundTasks,
+    user: User = Depends(require_user),
+    service: TrackerService = Depends(get_service)
+):
+    try:
+        await service.mark_season_watched(user.id, tmdb_id, season_number)
+    except Exception as e:
+        return f"Error: {e}"
+
+    context = await service.get_season_context(user.id, tmdb_id, season_number)
+    
+    return templates.TemplateResponse("tracker/partials_season_episodes.html", {
+        "request": request,
+        "tmdb_id": tmdb_id,
+        "season_number": season_number,
+        "season": context['season_data'],
+        "episodes": context['episodes']
+    })
+
+@router.post("/api/series/{tmdb_id}/watch-all")
+async def mark_series_watched(
+    request: Request,
+    tmdb_id: int,
+    user: User = Depends(require_user),
+    service: TrackerService = Depends(get_service)
+):
+    try:
+        await service.sync_series_episodes_activity(user.id, tmdb_id, "watched")
+    except Exception as e:
+         return f"Error: {e}"
+         
+    response = Response(status_code=200)
+    response.headers['HX-Refresh'] = "true"
+    return response
